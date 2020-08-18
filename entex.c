@@ -58,9 +58,9 @@ int	myintmod(int x, int m)
 }
 
 
-double	mymod(double x, int m)
+float	mymod(float x, int m)
 {
-	double ret;
+	float ret;
 
 	ret = fmod(x, m);
 	if (x >= 0)
@@ -95,7 +95,7 @@ int		mid_col(int *a, int w, int h, int x, int y)
 //		ret = ret + *(a + (y + 1) * w + x + 1);
 		s++;
 	}
-	vret = scale(1 / (double)s, vret);
+	vret = scale(1 / (float)s, vret);
 	vret.x = lround(vret.x);
 	vret.y = lround(vret.y);
 	vret.z = lround(vret.z);
@@ -189,7 +189,7 @@ void	rewrite_pix(int *a, int *o, int x, int y, int w, int h, int xmax, int ymax,
 
 
 	}
-	mid_col = scale(1 / (double)ran, mid_col);
+	mid_col = scale(1 / (float)ran, mid_col);
 	mid_col.x = lround(mid_col.x);
 	mid_col.y = lround(mid_col.y);
 	mid_col.z = lround(mid_col.z);
@@ -250,23 +250,85 @@ extern int fd;
 
 int		start_threads(void *f, t_global *g)
 {
+//#if 0
 	// Execute the kernel over the entire range of our 1d input data set
 	// letting the OpenCL runtime choose the work-group size
-	int global = WIDTH * HEIGHT;
+	size_t global = g->cl.count;
+	printf("enque nd range buffer\n");
 	int err = clEnqueueNDRangeKernel(g->cl.commands, g->cl.ko_vadd, 1, NULL, &global, NULL, 0, NULL, NULL);
 	checkError(err, "Enqueueing kernel");
 
-	// Wait for the commands to complete before stopping the timer
+	// Wait for the g->cl.commands to complete before stopping the timer
+	printf("executing...\n");
 	err = clFinish(g->cl.commands);
-	checkError(err, "Waiting for kernel to finish");
+	printf("done\n");
+//	checkError(err, "Waiting for kernel to finish");
 
 	// Read back the results from the compute device
-	err = clEnqueueReadBuffer(g->cl.commands, g->cl.d_data_ptr, CL_TRUE, 0, sizeof(float) * WIDTH * HEIGHT, g->data_ptr, 0, NULL, NULL);
-
+	printf("reading back to the host\n");
+	err = clEnqueueReadBuffer(g->cl.commands, g->cl.d_data_ptr, CL_TRUE, 0, sizeof(int) * WIDTH * HEIGHT, g->data_ptr, 0, NULL, NULL);
+	printf("done\n");
 	if (err != CL_SUCCESS)
 	{
 		printf("Error: Failed to read output array!\n%s\n", err_code(err));
 		exit(1);
 	}
 	mlx_put_image_to_window(g->mlx_ptr, g->win_ptr, g->img_ptr, 0, 0);
+//#endif
+#if 0
+	// Execute the kernel over the entire range of our 1d input data set
+	// letting the OpenCL runtime choose the work-group size
+
+
+	size_t global = g->cl.count;
+	int err = clEnqueueNDRangeKernel(g->cl.commands, g->cl.ko_vadd, 1, NULL, &global, NULL, 0, NULL, NULL);
+	checkError(err, "Enqueueing kernel");
+
+	// Wait for the g->cl.commands to complete before stopping the timer
+	printf("running commands...\n");
+	err = clFinish(g->cl.commands);
+	checkError(err, "Waiting for kernel to finish");
+
+
+	// Read back the results from the compute device
+	//err = clEnqueueReadBuffer( g->cl.commands, g->cl.d_data_ptr, CL_TRUE, 0, sizeof(float) * count, h_c, 0, NULL, NULL );  
+	if (err != CL_SUCCESS)
+	{
+		printf("Error: Failed to read output array!\n%s\n", err_code(err));
+		exit(1);
+	}
+
+	// Test the results
+	int correct = 0;
+	float tmp;
+
+/*	for(int i = 0; i < count; i++)
+	{
+		tmp = h_a[i] + h_b[i];	 // assign element i of a+b to tmp
+		tmp -= h_c[i];			 // compute deviation of expected and output result
+		if(tmp*tmp < TOL*TOL)		// correct if square deviation is less than tolerance squared
+			correct++;
+		else {
+			printf(" tmp %f h_a %f h_b %f h_c %f \n",tmp, h_a[i], h_b[i], h_c[i]);
+		}
+	}
+
+	// summarise results
+	printf("C = A+B:  %d out of %d results were correct.\n", correct, count);
+*/
+	// cleanup then shutdown
+/*	clReleaseMemObject(d_a);
+	clReleaseMemObject(d_b);
+	clReleaseMemObject(d_c);
+/
+	clReleaseProgram(program);
+	clReleaseKernel(g->cl.ko_vadd);
+	clReleaseCommandQueue(g->cl.commands);
+	clReleaseContext(context);
+
+	free(h_a);
+	free(h_b);
+	free(h_c);
+*/
+#endif
 }

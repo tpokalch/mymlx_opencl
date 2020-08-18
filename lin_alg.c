@@ -12,7 +12,7 @@
 
 #include "rtv1.h"
 
-t_vector	scale(double a, t_vector b)
+t_vector	scale(float a, t_vector b)
 {
 	b.x *= a;
 	b.y *= a;
@@ -20,19 +20,19 @@ t_vector	scale(double a, t_vector b)
 	return (b);
 }
 
-double		dot(t_vector a, t_vector b)
+float		dot(t_vector a, t_vector b)
 {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
 t_vector	norm(t_vector a)
 {
-	double leng;
+	float leng;
 
 	leng = sqrt(dot(a, a));
-	a.x = a.x / (double)leng;
-	a.y = a.y / (double)leng;
-	a.z = a.z / (double)leng;
+	a.x = a.x / (float)leng;
+	a.y = a.y / (float)leng;
+	a.z = a.z / (float)leng;
 	return (a);
 }
 

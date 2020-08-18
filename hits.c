@@ -142,7 +142,7 @@ t_dstpst		hit_sphere(t_vector st, t_vector end,  t_vector ray, t_object obj, t_g
 {
 	t_vector	dx[2];
 	t_vector	abc;
-	double det;
+	float det;
 	t_dstpst t;
 	t_global p;
 
@@ -238,8 +238,8 @@ t_dstpst		hit_cone(t_vector st, t_vector end,  t_vector ray, t_object obj, t_glo
 	t_vector dvxvdet;
 	t_vector abc;
 	t_global p;
-	double ret;
-	double min;
+	float ret;
+	float min;
 
 	p = *g;
 	dx[0] = diff(st, *obj.ctr);

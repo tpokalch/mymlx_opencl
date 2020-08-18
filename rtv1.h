@@ -33,11 +33,10 @@
 #include <CL/cl.h>
 #endif
 
-#define WIDTH 600
-#define HEIGHT 300
-#define HEIGHT_2 150
-#define WIDTH_2 300
-
+#define WIDTH 200
+#define HEIGHT 100
+#define HEIGHT_2 50
+#define WIDTH_2 100
 
 #define A_KEY 65
 #define S_KEY 83
@@ -73,9 +72,9 @@ typedef	struct	s_vector t_vector;
 
 struct s_vector
 {
-	double x;
-	double y;
-	double z;
+	float x;
+	float y;
+	float z;
 //	int	len;
 };
 
@@ -99,12 +98,12 @@ typedef	struct		s_colbri
 
 int				brg(t_vector rgb);
 int				inside_cone(t_vector p, t_object o, t_global *g);
-double				dot(t_vector a, t_vector b);
+float				dot(t_vector a, t_vector b);
 t_vector			diff(t_vector a, t_vector b);
 t_vector			sum(t_vector a, t_vector b);
 t_vector			norm(t_vector a);
 int					color(int b, t_vector c);
-t_vector			scale(double a, t_vector b);
+t_vector			scale(float a, t_vector b);
 void				ginit(t_global *g);
 void				init_plane(t_vector *ctr, int i, t_global *g);
 void				init_cylinder(t_vector *ctr, int i, t_global *g);
@@ -178,7 +177,7 @@ void				alias(int *dst, int *a, int w, int h, int xmax, int ymax);
 t_dstpst			*NANI(t_dstpst *t);
 void					obstructed(t_colbri *i, t_vector hit, t_vector *hitli, t_vector reflrayv, t_object obj, t_global *g);
 t_vector			rotate(t_vector ray, t_vector angle);
-void				init_vector(t_vector *current, double x, double y, double z);
+void				init_vector(t_vector *current, float x, float y, float z);
 int				con(t_global *g);
 t_vector			rgb(int c);
 t_vector			base(t_vector c);
@@ -186,7 +185,7 @@ int				pinside(t_vector p, t_vector bd1, t_vector bd2, t_vector bd3, t_vector nr
 void				screen(int *a, int w, int h, t_global *g);
 
 t_vector			cross(t_vector a, t_vector b);
-double				det(t_vector a, t_vector b);
+float				det(t_vector a, t_vector b);
 void				stretch(int *a, int d, int h);
 void				smooth(int *a, int w, int h, int xmax, int ymax, t_global *g);
 void				save_im(int *a, int *b, int w, int h);
@@ -195,11 +194,11 @@ void				white(int *a, int w, int h, int c);
 t_vector			**initialize_points(int height);
 t_vector			**create_points(char *filename, t_vector *ptdim, t_global *g);
 void				free_points(t_vector **pts);
-double				mymod(double x, int m);
-double				myacos(t_vector ax, t_vector v, t_vector nrm, t_global *g);
+float				mymod(float x, int m);
+float				myacos(t_vector ax, t_vector v, t_vector nrm, t_global *g);
 int				myintmod(int x, int m);
 int				left(t_vector a, t_vector b, t_vector nrm, t_global *g);
-double				tothe2(double x, int e);
+float				tothe2(float x, int e);
 
 void		do_tile_sphere(t_vector hit, t_object *obj, t_global *g);
 void		do_re(t_vector refl, t_vector hit, t_vector *retcol, t_object obj, t_global *g);
@@ -209,7 +208,7 @@ void		do_trans(t_vector st, t_vector hit, t_colbri *ret, t_object obj, t_global 
 void		do_spec(t_colbri *ret, t_vector hit, t_vector nrm, t_vector reflrayv, t_object obj, t_global *g);
 
 void		do_1_spec(t_colbri *tmp, t_colbri *ret, t_vector *hitli, t_vector reflrayv, t_object obj, int i, t_global *g);
-double		len2(t_vector a);
+float		len2(t_vector a);
 
 typedef	struct		s_tile
 {
@@ -250,13 +249,13 @@ typedef struct		s_object
 	t_vector		color;
 	int				rd;
 	int				rd2;
-	double				rd_1; // 1 / rd
+	float				rd_1; // 1 / rd
 
 	void			(*prop[3])();
 	t_vector		**pts;
 	t_object		*tris;
-	double			re;
-	double			trans;
+	float			re;
+	float			trans;
 	int			spec;
 	int			soft;
 	t_vector		ptdim;
@@ -266,8 +265,8 @@ typedef struct		s_object
 
 struct		s_dstpst
 {
-	double	dst;
-	double	pst;
+	float	dst;
+	float	pst;
 	t_object obj;
 };
 
@@ -282,26 +281,27 @@ typedef	struct s_cl
 	cl_command_queue commands;
 	cl_kernel        ko_vadd;
 	cl_mem			d_data_ptr;
+	int			count;
 }				t_cl;
 
 typedef struct		s_global
 {
-	void 			*mlx_ptr;
-	void			*win_ptr;
-	void			*img_ptr;
-	int				*data_ptr;
-	int				bpp;
-	int				sz_l;
-	int				e;
-	int				light_switch;
-	t_dstpst		cone[2];
-	t_vector		_0015;
-	t_vector		white;
+        void                    *mlx_ptr;
+        void                    *win_ptr;
+        void                    *img_ptr;
+        int                             *data_ptr;
+        int                             bpp;
+        int                             sz_l;
+        int                             e;
+        int                             light_switch;
+        t_dstpst                cone[2];
+        t_vector                _0015;
+        t_vector                white;
 	t_vector		base[3];
-	t_vector		*ray;
 	t_vector		*li;
 	t_vector		*cam_pos;
-	double			*liz;
+	t_vector		*ray;
+	float			*liz;
 	t_vector		*angle;
 	t_vector		*normal;
 	t_object		*obj;
@@ -320,7 +320,7 @@ typedef struct		s_global
 	t_vector			*hitli;
 	t_vector			*savehitli;
 	t_vector			prev;
-	double				*cosa;
+	float				*cosa;
 	t_vector			*ctrli;
 	int					*recursion;
 	t_global		*tcps[CORES];

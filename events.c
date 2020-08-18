@@ -185,7 +185,7 @@ int		mouse_move(int x, int y, void *param)
 	t_global *g;
 	int	i;
 	t_vector p;
-	double block;
+	float block;
 
 	i = -1;
 	g = param;

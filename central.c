@@ -22,19 +22,19 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 //	int	objn;
 	t_vector nrm;
 	int	iobjn[2];
-	double cosa[g->lights];
+	float cosa[g->lights];
 	t_dstpst	t;
 	t_vector ray;
 	t_colbri tmp;
 	int	obsc = 0; // how many ones there are in obss. from how many lights it is shielded
 	int obss[g->lights]; // used in do 1 spec. obss[i] == 1 if that obect is obstructed from light[i]
 	int	specscal;
-	double soft[g->lights];
+	float soft[g->lights];
 //	int	darken[g->lights];
 	t_vector obstructed;
 	ft_bzero(obss, sizeof(int) * g->lights);
-	ft_bzero(soft, sizeof(double) * g->lights);
-	ft_bzero(cosa, sizeof(double) * g->lights);
+	ft_bzero(soft, sizeof(float) * g->lights);
+	ft_bzero(cosa, sizeof(float) * g->lights);
 
 
 	init_vector(&tmp.col, 0, 0, 0);
@@ -76,7 +76,7 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 //						soft[i] = sqrt(soft[i]);
 //						soft[i] = pow(soft[i], 1.5);
 
-//						double soft = normal_to_the_obhect * hitli, so between 0 and 1
+//						float soft = normal_to_the_obhect * hitli, so between 0 and 1
 					}
 					g->prim = iobjn[1];
 					obsc++;
@@ -111,10 +111,10 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 			}
 		if (cosa[i] > 0)
 		{
-/*			double cosai2 = cosa[i] * cosa[i];
-			double cosai4 = cosai2 * cosai2;
-*/			double m = 0.2;
-			double a = acos(cosa[i]);
+/*			float cosai2 = cosa[i] * cosa[i];
+			float cosai4 = cosai2 * cosai2;
+*/			float m = 0.2;
+			float a = acos(cosa[i]);
 
 //			cosa[i] = exp(-a * a/ (m * m));
 //			cosa[i] =  1/(M_PI * m * m * cosai4) * exp(-1/(m * m) * (1/cosai2 - 1));
@@ -146,7 +146,7 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 				specscal = g->lights - obsc;
 			else
 				specscal = g->lights;
-			tmp.col = scale(1 / (double)specscal, tmp.col);
+			tmp.col = scale(1 / (float)specscal, tmp.col);
 			cur->col = tmp.col;
 		}
 	}
@@ -169,7 +169,7 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 			}
 		}//		DRAWS REGUALR SHADOWS
 		else
-			cur->bri = g->ambient + ((g->lights - obsc) * (cur->bri - g->ambient) / (double)g->lights);
+			cur->bri = g->ambient + ((g->lights - obsc) * (cur->bri - g->ambient) / (float)g->lights);
 	}
 
 	if (con(g))
@@ -186,7 +186,7 @@ void	objecthit(t_dstpst *ret, t_vector st, t_vector end, t_object *obj, int objc
 	int i;
 	int legal_hit;
 	t_dstpst t_crt;
-	double closest_tmp;
+	float closest_tmp;
 	t_vector ray;
 
 	i = 0;
@@ -296,21 +296,21 @@ void		do_load(int j, t_global *g)
 {
 
 		if (g->core == 0)
-			printf("core 1 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 1 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 1)
-			printf("core 2 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 2 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 2)
-			printf("core 3 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 3 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 3)
-			printf("core 4 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 4 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 4)
-			printf("core 5 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 5 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 5)
-			printf("core 6 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 6 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 6)
-			printf("core 7 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 7 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 		else if (g->core == 7)
-			printf("core 8 = %fp\n", j / (double)(HEIGHT / (double)CORES)  - g->core);
+			printf("core 8 = %fp\n", j / (float)(HEIGHT / (float)CORES)  - g->core);
 }
 
 void		recalc_row(int jwidth, int j, t_global *g)

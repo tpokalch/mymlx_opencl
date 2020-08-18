@@ -9,6 +9,61 @@
 
 #endif
 
+
+const char *source =
+"typedef struct s_vector\n"\
+"{\n"\
+"		float x;\n"\
+"		float y;\n"\
+"		float z;\n"\
+"}					   t_vector;\n"\
+/*
+"typedef struct s_object\n"\
+"{\n"\
+"		float x;\n"\
+"		float y;\n"\
+"		float z;\n"\
+"}					   t_object;\n"\
+*/
+"__kernel void recalc(\n"				\
+"		const unsigned int	  count,\n"	\
+"		__global int		*data_ptr,\n"	\
+"		__global t_vector	*li)\n"	\
+/*
+"		__global t_vector	   *li,\n"\
+"		__global t_vector	   *cam_pos,\n"\
+"		__global t_vector	   *angle,\n"\
+"		__global t_vector	   *base,\n"\
+"		__global t_vector	   *ctr,\n"\
+*/
+"{\n"\
+"	int i = get_global_id(0);\n"
+"	if (i < count)\n"
+"	{\n"
+"                if (li->x != 0)\n"
+"                        data_ptr[i] = i * i;\n"
+"                else\n"
+"                        data_ptr[i] = 0xFFFFFF;\n"
+"                return ;\n"
+"	}\n"
+"}\0";
+
+#define TOL    (0.001)   // tolerance used in floating point comparisons
+#define LENGTH (1024)    // length of vectors a, b, and c
+
+const char *KernelSource = "\n" \
+"__kernel void vadd(	                                             \n" \
+"   __global float* a,                                                  \n" \
+"   __global float* b,                                                  \n" \
+"   __global float* c,                                                  \n" \
+"   const unsigned int count)                                           \n" \
+"{                                                                      \n" \
+"   int i = get_global_id(0);                                           \n" \
+"   if(i < count)                                                       \n" \
+"       c[i] = a[i] + b[i];                                             \n" \
+"}                                                                      \n" \
+"\n";
+
 int			con(t_global *g)
 {
 	return (shot.x == g->ray->x && shot.y == g->ray->y);
@@ -23,9 +78,6 @@ int		mouse_press(int button, int x, int y, void *param)
 //	ft_bzero((int *)g->data_ptr, g->sz_l * HEIGHT);
 	if (button == 1)
 	{
-		shot.x = -WIDTH / 2 + x;
-		shot.y = HEIGHT / 2 - y;
-		printf("\n%f, %f\n", shot.x, shot.y);
 //		a = g->obj[g->objn];
 //		printf("object is %d %s %f, %f, %f\n%f,%f, %f\n", g->objn, a.name, a.ctr->x, a.ctr->y, a.ctr->z, a.nr.x, a.nr.y, a.nr.z);
 		printf("\nmouse press -> realc\n");
@@ -159,42 +211,36 @@ void* loadfile(char* file, int* size)
 
 void	clinit(t_global *g, t_vector *ctr)
 {
-	int          err;               // error code returned from OpenCL calls
+	int		  err;			   // error code returned from OpenCL calls
 
-	t_object *h_obj = g->obj;       // a vector
-	t_vector *h_li = g->li;       // b vector
-	t_vector *h_angle = g->angle;       // angle vector
-	t_vector *h_cam_pos = g->cam_pos;       // cam pos
+	t_object *h_obj = g->obj;	   // a vector
+	t_vector *h_li = g->li;	   // b vector
+	t_vector *h_angle = g->angle;	   // angle vector
+	t_vector *h_cam_pos = g->cam_pos;	   // cam pos
 	t_vector* h_base = g->base;
 	t_vector* h_ctr = ctr;
 
-	printf("center 1 is %d,%d,%d\n", h_ctr[0].x, h_ctr[0].y, h_ctr[0].z);
-	printf("center 2 is %d,%d,%d\n", h_ctr[1].x, h_ctr[1].y, h_ctr[1].z);
+	printf("center 1 is %f,%f,%f\n", h_ctr[1].x, h_ctr[1].y, h_ctr[1].z);
+	printf("center 2 is %f,%f,%f\n", h_ctr[2].x, h_ctr[2].y, h_ctr[2].z);
 
-	int* h_data_ptr = g->data_ptr;       // c vector (a+b) returned from the compute device
+	int* h_data_ptr = g->data_ptr;	   // c vector (a+b) returned from the compute device
 
-	unsigned int correct;           // number of correct results
+//	unsigned int correct;		   // number of correct results
 
-	size_t global;                  // global domain size
+//	size_t global;				  // global domain size
 
-	cl_device_id     device_id;     // compute device id
-	cl_context       context;       // compute context
-	cl_command_queue commands;      // compute command queue
-	cl_program       program;       // compute program
-	cl_kernel        ko_vadd;       // compute kernel
+	cl_device_id	 device_id;	 // compute device id
+	cl_context	   context;	   // compute context
+//	cl_command_queue g->cl.commands;	  // compute command queue
+	cl_program	   program;	   // compute program
+//	cl_kernel		g->cl.ko_vadd;	   // compute kernel
 
 
 
 	// Fill vectors a and b with random float values
 
-	int count = WIDTH * HEIGHT;
-/*	int i = 0;
+	g->cl.count = WIDTH * HEIGHT;
 
-	for (i = 0; i < count; i++) {
-		h_a[i] = rand() / (float)RAND_MAX;
-		h_b[i] = rand() / (float)RAND_MAX;
-	}
-	*/
 	// Set up platform and GPU device
 
 	cl_uint numPlatforms;
@@ -235,13 +281,13 @@ void	clinit(t_global *g, t_vector *ctr)
 	checkError(err, "Creating context");
 
 	// Create a command queue
-	commands = clCreateCommandQueue(context, device_id, 0, &err);
+	g->cl.commands = clCreateCommandQueue(context, device_id, 0, &err);
 	checkError(err, "Creating command queue");
 	printf("here\n");
 	// Create the compute program from the source buffer
 
 	int len;
-	char* KernelSource = loadfile("./kernel.cl", &len);
+	char* KernelSource = /*source*/loadfile("./kernel.c", &len);
 
 	printf("creating program with source\n");
 	program = clCreateProgramWithSource(context, 1, (const char**)&KernelSource, NULL, &err);
@@ -255,32 +301,43 @@ void	clinit(t_global *g, t_vector *ctr)
 		char buffer[999999];
 
 		printf("Error: Failed to build program executable!\n%s\n", err_code(err));
-													//param name    param_value_size param_value
+													//param name	param_value_size param_value
 		err = clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 999999, buffer, &len);
 		printf("clGetProgramBuildInf == %s\n", err_code(err));
 		printf("%s\n", buffer);
 		return ;
 	}
-	printf("here\n");
+	printf("creating kernel\n");
 	// Create the compute kernel from the program
-	ko_vadd = clCreateKernel(program, "vadd", &err);
+	g->cl.ko_vadd = clCreateKernel(program, "recalc", &err);
 	checkError(err, "Creating kernel");
 
-	cl_mem d_obj;                     // device memory used for the input  a vector
-	cl_mem d_li;                     // device memory used for the input  b vector
-	cl_mem d_cam_pos;                     // device memory used for the input cam_pos
-	cl_mem d_angle;                     // device memory used for the input cam angle
-	cl_mem d_base;                     // device memory used for the bases
-	cl_mem d_ctr;                     // device memory used for the bases
+	cl_mem d_obj;					 // device memory used for the input  a vector
+	cl_mem d_li;					 // device memory used for the input  b vector
+	cl_mem d_cam_pos;					 // device memory used for the input cam_pos
+	cl_mem d_angle;					 // device memory used for the input cam angle
+	cl_mem d_base;					 // device memory used for the bases
+	cl_mem d_ctr;					 // device memory used for the bases
 
-	//cl_mem g->cl.d_data_ptr;                     // device memory used for the output c vector
+	//cl_mem g->cl.d_data_ptr;					 // device memory used for the output c vector
 
 	// Create the input (a, b) and output (c) arrays in device memory
-	d_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_object) * g->objn, NULL, &err);
-	checkError(err, "Creating buffer d_a");
+	printf("argc + 1 is %d\n", g->argc + 1);
+	printf("objects are: %d %d %s\n", 0, g->obj[0].id, g->obj[0].name);
+	printf("objects are: %d %d %s\n", 1, g->obj[1].id, g->obj[1].name);
+	printf("objects are: %d %d %s\n", 2, g->obj[2].id, g->obj[2].name);
+
+
+	g->cl.d_data_ptr = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(unsigned int) * WIDTH * HEIGHT, NULL, &err);
+	checkError(err, "Creating buffer g->cl.d_data_ptr");
+
+
+
+	d_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_object) * (g->argc + 1), NULL, &err);
+	checkError(err, "Creating buffer d_obj");
 
 	d_li = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
-	checkError(err, "Creating buffer d_b");
+	checkError(err, "Creating buffer d_li");
 
 	d_cam_pos = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
 	checkError(err, "Creating buffer d_cam_pos");
@@ -291,42 +348,42 @@ void	clinit(t_global *g, t_vector *ctr)
 	d_base = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 3, NULL, &err);
 	checkError(err, "Creating buffer d_base");
 
-	d_ctr = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * g->objn, NULL, &err);
-	checkError(err, "Creating buffer d_base");
+	d_ctr = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * (g->argc + 1), NULL, &err);
+	checkError(err, "Creating buffer d_ctr");
 
-
-	g->cl.d_data_ptr = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int) * count, NULL, &err);
-	checkError(err, "Creating buffer d_c");
 
 	// Write a and b vectors into compute device memory
-	err = clEnqueueWriteBuffer(commands, d_obj, CL_TRUE, 0, sizeof(t_object) * g->objn, h_obj, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, d_obj, CL_TRUE, 0, sizeof(t_object) * (g->argc + 1), g->obj, 0, NULL, NULL);
 	checkError(err, "Copying h_a to device at d_a");
 
-	err = clEnqueueWriteBuffer(commands, d_li, CL_TRUE, 0, sizeof(t_vector) * g->lights, h_li, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, d_li, CL_TRUE, 0, sizeof(t_vector) * g->lights, h_li, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
 
-	err = clEnqueueWriteBuffer(commands, d_angle, CL_TRUE, 0, sizeof(t_vector) * g->lights, h_angle, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, d_cam_pos, CL_TRUE, 0, sizeof(t_vector) * 1, h_cam_pos, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
-
-	err = clEnqueueWriteBuffer(commands, d_cam_pos, CL_TRUE, 0, sizeof(t_vector) * 1, h_cam_pos, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, d_angle, CL_TRUE, 0, sizeof(t_vector) * 1, h_angle, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
-
-	err = clEnqueueWriteBuffer(commands, d_base, CL_TRUE, 0, sizeof(t_vector) * 3, h_base, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, d_base, CL_TRUE, 0, sizeof(t_vector) * 3, h_base, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_base");
 
-	err = clEnqueueWriteBuffer(commands, d_ctr, CL_TRUE, 0, sizeof(t_vector) * g->objn, h_ctr, 0, NULL, NULL);
-	checkError(err, "Copying h_b to device at d_ctr");
+	err = clEnqueueWriteBuffer(g->cl.commands, d_ctr, CL_TRUE, 0, sizeof(t_vector) * (g->argc + 1), h_ctr, 0, NULL, NULL);
+	checkError(err, "Copying h_ctr to device at d_ctr");
 
 	// Set the arguments to our compute kernel
-	err = clSetKernelArg(ko_vadd, 0, sizeof(cl_mem), &d_obj);
-	err |= clSetKernelArg(ko_vadd, 1, sizeof(cl_mem), &d_li);
-	err |= clSetKernelArg(ko_vadd, 2, sizeof(cl_mem), &d_cam_pos);
-	err |= clSetKernelArg(ko_vadd, 3, sizeof(cl_mem), &d_angle);
-	err |= clSetKernelArg(ko_vadd, 4, sizeof(cl_mem), &d_base);
-	err |= clSetKernelArg(ko_vadd, 5, sizeof(cl_mem), &d_ctr);
+	printf("campos is %f,%f,%f\n", g->cam_pos->x, g->cam_pos->y, g->cam_pos->z);
+	printf("li is %f,%f,%f\n", g->li->x, g->li->y, g->li->z);
 
-	err |= clSetKernelArg(ko_vadd, 6, sizeof(cl_mem), &g->cl.d_data_ptr);
-	err |= clSetKernelArg(ko_vadd, 7, sizeof(unsigned int), &count);
+	err |= clSetKernelArg(g->cl.ko_vadd, 0, sizeof(unsigned int), &g->cl.count);
+	err |= clSetKernelArg(g->cl.ko_vadd, 1, sizeof(cl_mem), &g->cl.d_data_ptr);
+	err |= clSetKernelArg(g->cl.ko_vadd, 2, sizeof(cl_mem), &d_obj);
+	err |= clSetKernelArg(g->cl.ko_vadd, 3, sizeof(cl_mem), &d_li);
+	err |= clSetKernelArg(g->cl.ko_vadd, 4, sizeof(cl_mem), &d_cam_pos);
+	err |= clSetKernelArg(g->cl.ko_vadd, 5, sizeof(cl_mem), &d_angle);
+	err |= clSetKernelArg(g->cl.ko_vadd, 6, sizeof(cl_mem), &d_base);
+	err |= clSetKernelArg(g->cl.ko_vadd, 7, sizeof(cl_mem), &d_ctr);
+
+
+
 	printf("Setting kernel arguments\n");
 	checkError(err, "Setting kernel arguments");
 }
@@ -347,6 +404,8 @@ int		main(int argc, char **argv)
 //	fd = open("./video", O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
 	h = WIDTH;
 	w = HEIGHT;
+
+	printf("width height is %d,%d\n", WIDTH, HEIGHT);
 	g.cam_pos = &kenobi[0];
 	g.angle = &kenobi[1];
 	g.ray = &kenobi[2];
@@ -354,8 +413,8 @@ int		main(int argc, char **argv)
 	g.normal = &kenobi[4];
 	
 	printf("mlx init\n");
-	//g.mlx_ptr = mlx_init();
-	//g.win_ptr = mlx_new_window(g.mlx_ptr, WIDTH, HEIGHT, "window1");
+	g.mlx_ptr = mlx_init();
+	g.win_ptr = mlx_new_window(g.mlx_ptr, WIDTH, HEIGHT, "window1");
 	printf("ginit\n");
 	ginit(&g);
 	printf("check arg\n");
@@ -363,10 +422,10 @@ int		main(int argc, char **argv)
 		return (0);
 	printf("new image\n");
 
-	//g.img_ptr = mlx_new_image(g.mlx_ptr, WIDTH, HEIGHT);
-	//g.data_ptr = (int *)mlx_get_data_addr(g.img_ptr, &g.bpp, &g.sz_l, &g.e);
+	g.img_ptr = mlx_new_image(g.mlx_ptr, WIDTH, HEIGHT);
+	g.data_ptr = (int *)mlx_get_data_addr(g.img_ptr, &g.bpp, &g.sz_l, &g.e);
 //	g.win_ptr = mlx_new_window(g.mlx_ptr, WIDTH, HEIGHT, "window1"); must include earlier
-	cl_uint numPlatforms;
+/*	cl_uint numPlatforms;
 
 	// Find number of platforms
 	int err = clGetPlatformIDs(0, NULL, &numPlatforms);
@@ -380,6 +439,7 @@ int		main(int argc, char **argv)
 	{
 		printf("found %d platforms\n", numPlatforms);
 	}
+*/
 	clinit(&g, ctr);
 	//copy_tcps(&g);
 	printf("starting threads\n");

@@ -37,20 +37,20 @@ t_vector	rgb(int c)
 
 t_vector	base255(t_vector dir)
 {
-	dir.x = dir.x / (double)255;
-	dir.y = dir.y / (double)255;
-	dir.z = dir.z / (double)255;
+	dir.x = dir.x / (float)255;
+	dir.y = dir.y / (float)255;
+	dir.z = dir.z / (float)255;
 	return (dir);
 }
 
 t_vector	base(t_vector dir)
 {
-	double		max;
+	float		max;
 
 	max = fmax(dir.x, fmax(dir.y, dir.z));
-	dir.x = dir.x / (double)max;
-	dir.y = dir.y / (double)max;
-	dir.z = dir.z / (double)max;
+	dir.x = dir.x / (float)max;
+	dir.y = dir.y / (float)max;
+	dir.z = dir.z / (float)max;
 //	dir.x = lround(dir.x);
 //	dir.y = lround(dir.y);
 //	dir.z = lround(dir.z);

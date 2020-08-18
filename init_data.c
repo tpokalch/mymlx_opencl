@@ -18,7 +18,7 @@ void		ginit(t_global *g)
 	int i;
 	t_objecthit ***hits;
 
-	g->ray->z = lround(WIDTH / (double)2000 * 1600);
+	g->ray->z = lround(WIDTH / (float)2000 * 1600);
 	i = -1;
 	g->lights = 1;
 	g->li = (t_vector *)malloc(sizeof(t_vector) * g->lights);
@@ -35,7 +35,7 @@ void		ginit(t_global *g)
 //	init_vector(&g->li[0], -667, -13, 1800);
 
 	printf("init memory for liz\n");
-	g->liz = (double *)malloc(sizeof(double) * g->lights); 	
+	g->liz = (float *)malloc(sizeof(float) * g->lights); 	
 	i = -1;
 	while(++i < g->lights)
 		g->liz[i] = g->li[i].z;
@@ -46,7 +46,7 @@ void		ginit(t_global *g)
 //	g->ambient = 10;
 
 
-//	g->step_bri = (255 - g->ambient) / (double)g->lights;
+//	g->step_bri = (255 - g->ambient) / (float)g->lights;
 	g->mip_map = 0;
 //	g->mutex = PTHREAD_MUTEX_INITIALIZER;
 	init_vector(&g->_0015, 0, 0, 15);
@@ -67,7 +67,7 @@ void		ginit(t_global *g)
 	init_vector(g->cam_pos, 0, 100, -200);
 
 	init_vector(&g->white, 1, 1, 1);
-	g->light_switch = 1;
+	g->light_switch = 0;
 	g->objn = 0;
 	g->prim = 0;
 //	g->obj = (t_object *)malloc(sizeof(t_object) * (g->argc + 1));
@@ -624,8 +624,8 @@ void		rotate_normal_map_sphere(t_tile *normalmap)
 		x = 0;
 		while (x < normalmap->w)
 		{
-			angle.x = y / (double)(normalmap->h * M_1_PI);
-			angle.y = x / (double)(normalmap->w2 * M_1_PI);
+			angle.x = y / (float)(normalmap->h * M_1_PI);
+			angle.y = x / (float)(normalmap->w2 * M_1_PI);
 
 			*(normalmap->vectile + y * normalmap->w + x) = 
 			rotate(*(normalmap->vectile + y * normalmap->w + x), angle);
@@ -662,7 +662,7 @@ void		init_sphere(t_vector *ctr, int i, t_global *g)
 	printf("center is %f\n", g->obj[i].ctr->z);
 	g->obj[i].rd = 100;
 	g->obj[i].rd2 = g->obj[i].rd * g->obj[i].rd;
-	g->obj[i].rd_1 = 1 / (double)g->obj[i].rd;
+	g->obj[i].rd_1 = 1 / (float)g->obj[i].rd;
 	g->obj[i].color = rgb(0x000101);
 	init_vector(&g->obj[i].ang, 0, 0, 0);
 	init_vector(&g->obj[i].base[0], 1, 0, 0);

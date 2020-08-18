@@ -79,7 +79,7 @@ void		copy(t_global *tcps, t_global *g)
 	tcps->white = g->white;
 	tcps->hitli = (t_vector *)malloc(sizeof(t_vector) * g->lights);
 	tcps->savehitli = (t_vector *)malloc(sizeof(t_vector) * g->lights);
-	tcps->cosa = (double *)malloc(sizeof(double) * g->lights);
+	tcps->cosa = (float *)malloc(sizeof(float) * g->lights);
 	tcps->recursion = (int *)malloc(sizeof(int) * (g->argc + 1));
 	ft_bzero(tcps->recursion, sizeof(int) * (g->argc + 1));
 	//	tcps->ctrli = (t_vector *)malloc(sizeof(t_vector) * g->lights);

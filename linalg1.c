@@ -1,9 +1,9 @@
 
 #include "rtv1.h"
 
-double           myacos(t_vector ax, t_vector v, t_vector nrm, t_global *g)
+float           myacos(t_vector ax, t_vector v, t_vector nrm, t_global *g)
 {
-	double ret;
+	float ret;
 
 	ret = acos(dot(ax, v));
         if (ret > M_PI || left(v, ax, nrm, g))
@@ -16,7 +16,7 @@ double           myacos(t_vector ax, t_vector v, t_vector nrm, t_global *g)
 	return (ret);
 }
 
-void		init_vector(t_vector *i, double x, double y, double z)
+void		init_vector(t_vector *i, float x, float y, float z)
 {
 	i->x = x;
 	i->y = y;
@@ -71,7 +71,7 @@ int			pinside(t_vector p, t_vector bd1, t_vector bd2, t_vector bd3, t_vector nr,
 		&& left(pt[1], bd[1], nr, g));
 }
 
-double			det(t_vector a, t_vector b)
+float			det(t_vector a, t_vector b)
 {
 	return (a.x * b.z - a.z * b.x);
 }
@@ -99,12 +99,12 @@ t_vector		rotate(t_vector ray, t_vector angle)
 	return (ret);
 }
 
-double				len2(t_vector a)
+float				len2(t_vector a)
 {
 	return (dot(a, a));
 }
 
-double				tothe2(double x, int e)
+float				tothe2(float x, int e)
 {
 	int i;
 
