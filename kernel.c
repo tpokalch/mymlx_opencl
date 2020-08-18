@@ -9,11 +9,10 @@
 //#include <strings.h>
 
 
-#define WIDTH 200
-#define HEIGHT 100
-#define HEIGHT_2 50
-#define WIDTH_2 100
-
+#define WIDTH 1000
+#define HEIGHT 500
+#define HEIGHT_2 250
+#define WIDTH_2 500
 
 
 #define TASK 20
@@ -1226,14 +1225,14 @@ t_colbri	bright_sphere(t_vector st, t_vector hit, t_object *obj, t_global *g)
 //	g->recursion[obj->id]++;
 	init_hitli(hitli, hit, g);
 	obj->nr = obj->real_nr = scale(obj->rd_1, diff(hit, *obj->ctr));
-
+//	return ret;
 //	normal must be inited before lighting calculation
 //	if (obj->normal_map.data_ptr)
 //		do_normal_map_sphere(hit, obj, g);
 
 //	if (con(g))
 //		printf("cam: %f, %f, %f, li: %f, %f, %f angle: %f,%f,%f\n",g->cam_pos->x, g->cam_pos->y, g->cam_pos->z, g->li->x, g->li->y, g->li->z, g->angle->x, g->angle->y, g->angle->z);
-	if (obj->cam_pos)
+/*	if (obj->cam_pos)
 	{
 		obj->nr = scale(-1, obj->nr);
 		if (len2(diff(*g->li, *obj->ctr)) > obj->rd2)
@@ -1241,17 +1240,24 @@ t_colbri	bright_sphere(t_vector st, t_vector hit, t_object *obj, t_global *g)
 		else
 			init_bri(&ret.bri, hitli, obj->nr, g);	
 	}
-	else
+
+	else*/
 		init_bri(&ret.bri, hitli, obj->nr, g);
+
+#if 0
 	if (obj->spec || obj->re)
 		reflrayv = reflray(st, hit, obj->nr, g);
 /*	if (obj->tile[0].data_ptr)
 		do_tile_sphere(hit, obj, g);
-*/	ret.col = obj->color;
+*/
+#endif
+	ret.col = obj->color;
+#if 0
 	if (obj->re)
 		do_re(reflrayv, hit, &ret.col, *obj, g);
 	if (obj->trans)
 		do_trans(st, hit, &ret, *obj, g);
+#endif
 //	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
 //	g->recursion[obj->id] = 0;
 	return (ret);
@@ -1340,12 +1346,17 @@ t_colbri		bright_plane(t_vector st, t_vector hit,
 		obj->nr = obj->base[1];
 
 //	changed campos to invert obj base //message не актуально
+/*
 	if (obj->cam_pos)
 	{
 //		obj->base[1] = scale(-1, obj->base[1]);
 		obj->nr = scale(-1, obj->nr);
 	}
+*/
 	init_bri(&ret.bri, hitli, obj->nr, g);
+
+//	return ret;
+#if 0
 	if (obj->spec || obj->re)
 		reflrayv = reflray(st, hit, obj->nr, g);
 //	if (obj->tile[0].data_ptr)
@@ -1356,8 +1367,9 @@ t_colbri		bright_plane(t_vector st, t_vector hit,
 		init_vector(&obj->color, 0,0.5f, 0.5f);
 */
 //		init_vector(&obj->color, 1,1, 1);
-
+#endif
 	ret.col = obj->color;
+#if 0
 	if (obj->re)
 		do_re(reflrayv, hit, &ret.col, *obj, g);
 	if (obj->trans)
@@ -1365,6 +1377,7 @@ t_colbri		bright_plane(t_vector st, t_vector hit,
 //	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
 
 //	g->recursion[obj->id] = 0;
+#endif
 	return (ret);
 }
 
@@ -1824,37 +1837,6 @@ __kernel void recalc(
 		int y = i / WIDTH;
 		t_global g;
 
-//		g.li = &li_cam_angle_base_ctr[0];
-//		g.cam_pos = &li_cam_angle_base_ctr[1];
-//		g.angle = &li_cam_angle_base_ctr[2];
-
-//		g.base[0] = &li_cam_angle_base_ctr[3];
-//		g.base[1] = &li_cam_angle_base_ctr[4];
-//		g.base[2] = &li_cam_angle_base_ctr[5];
-//		g.ctr[3] = &li_cam_angle_base_ctr[3];
-//		g.obj = obj;
-
-
-//		data_ptr[i] = i;
-//		return ;   
-
-//		obj[1].ctr = &objctr[1];
-//		obj[2].ctr = &objctr[2];
-
-/*		if (obj[2].id != 2)
-		{
-			data_ptr[i] = i * i;
-			return ;   
-		}
-
-*/
-
-
-//		data_ptr[i] = i;
-//		return ;   
-
-
-
 		obj[1].ctr = ctr + 1;
 		obj[2].ctr = ctr + 2;
 
@@ -1936,12 +1918,12 @@ __kernel void recalc(
 
 
 		objecthit(&ret, *g.cam_pos, sum(ray, *g.cam_pos), g.obj, g.argc + 1, &g);
-		printf("%d", ret.obj.id);
+//		printf("%d", ret.obj.id);
 		if (ret.obj.id == 1)
 			data_ptr[i] = 0x00FF00;
 		else
 			data_ptr[i] = 0x0000FF;
-		return ;   
+//		return ;   
 
 
 
@@ -1950,7 +1932,7 @@ __kernel void recalc(
 //				printf("gettin bright\n");
 				if (ret.obj.id == 1)
 					bright = bright_plane(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
-				else
+				else if (ret.obj.id == 2)
 					bright = bright_sphere(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
 	
 				data_ptr[i] = color(bright.bri, bright.col);

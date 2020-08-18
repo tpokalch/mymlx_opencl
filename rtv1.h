@@ -33,10 +33,10 @@
 #include <CL/cl.h>
 #endif
 
-#define WIDTH 200
-#define HEIGHT 100
-#define HEIGHT_2 50
-#define WIDTH_2 100
+#define WIDTH 1000
+#define HEIGHT 500
+#define HEIGHT_2 250
+#define WIDTH_2 500
 
 #define A_KEY 65
 #define S_KEY 83

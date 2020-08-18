@@ -250,6 +250,7 @@ extern int fd;
 
 int		start_threads(void *f, t_global *g)
 {
+	clock_t t[2];
 //#if 0
 	// Execute the kernel over the entire range of our 1d input data set
 	// letting the OpenCL runtime choose the work-group size
@@ -260,7 +261,10 @@ int		start_threads(void *f, t_global *g)
 
 	// Wait for the g->cl.commands to complete before stopping the timer
 	printf("executing...\n");
+	t[0] = clock();
 	err = clFinish(g->cl.commands);
+	t[1] = clock();
+        printf("fps %f\n",1 / ((double)(t[1] - t[0]) / (double)CLOCKS_PER_SEC));
 	printf("done\n");
 //	checkError(err, "Waiting for kernel to finish");
 
