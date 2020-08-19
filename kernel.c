@@ -1244,21 +1244,18 @@ t_colbri	bright_sphere(t_vector st, t_vector hit, t_object *obj, t_global *g)
 	else*/
 		init_bri(&ret.bri, hitli, obj->nr, g);
 
-#if 0
 	if (obj->spec || obj->re)
 		reflrayv = reflray(st, hit, obj->nr, g);
 /*	if (obj->tile[0].data_ptr)
 		do_tile_sphere(hit, obj, g);
 */
-#endif
 	ret.col = obj->color;
-#if 0
-	if (obj->re)
+/*	if (obj->re)
 		do_re(reflrayv, hit, &ret.col, *obj, g);
-	if (obj->trans)
-		do_trans(st, hit, &ret, *obj, g);
-#endif
-//	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
+*/
+//	if (obj->trans)
+//		do_trans(st, hit, &ret, *obj, g);
+	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
 //	g->recursion[obj->id] = 0;
 	return (ret);
 }
@@ -1356,28 +1353,32 @@ t_colbri		bright_plane(t_vector st, t_vector hit,
 	init_bri(&ret.bri, hitli, obj->nr, g);
 
 //	return ret;
-#if 0
+//#if 0
 	if (obj->spec || obj->re)
 		reflrayv = reflray(st, hit, obj->nr, g);
-//	if (obj->tile[0].data_ptr)
-//		do_tile_plane(&ret, hit, obj, g);
-/*	
-	else if ((int)(round(fabs(hit.x) / (float)80) % 2)
-		== (int)(round(fabs(hit.z) / (float)80) % 2))
+/*	if (obj->tile[0].data_ptr)
+//		do_tile_plane(&ret, hit, obj, g);	
+	else */if ((((int)round(fabs(hit.x) / 80)) % 2)
+		== (((int)round(fabs(hit.z) / 80)) % 2))
+	{
+//		printf("initing\n");
 		init_vector(&obj->color, 0,0.5f, 0.5f);
-*/
+	}
+//	printf("%d\n", (((int)round(fabs(hit.x) / 80)) % 2) - (((int)round(fabs(hit.z) / 80)) % 2));
+
 //		init_vector(&obj->color, 1,1, 1);
-#endif
+//#endif
 	ret.col = obj->color;
-#if 0
-	if (obj->re)
+//#if 0
+/*	if (obj->re)
 		do_re(reflrayv, hit, &ret.col, *obj, g);
 	if (obj->trans)
 		do_trans(st, hit, &ret, *obj, g);	
-//	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
+*/
+	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
 
 //	g->recursion[obj->id] = 0;
-#endif
+//#endif
 	return (ret);
 }
 
@@ -1678,9 +1679,9 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 
 //						segfailt here if object is complex. object must be a triangle
 						if (g->obj[iobjn[1]].id == 1)
-							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)tarasDot(norm(get_normal_plane(obstructed, &g->obj[iobjn[1]])), norm(ray))));
+							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_plane(obstructed, &g->obj[iobjn[1]])), norm(ray))));
 						else
-							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)tarasDot(norm(get_normal_sphere(obstructed, &g->obj[iobjn[1]])), norm(ray))));
+							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_sphere(obstructed, &g->obj[iobjn[1]])), norm(ray))));
 
 //						soft[i] = fmax((float)0, (float)-tarasDot(norm(g->obj[iobjn[1]].get_normal(obstructed, &g->obj[iobjn[1]])), norm(ray)));
 
@@ -1701,7 +1702,9 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 			iobjn[1] = (iobjn[1] + 1) % (g->argc + 1);
 		}
 		if (obj.soft)
+		{
 			soft[i] = tothe2(soft[i], obj.soft);
+		}
 		i++;
 	}
 
@@ -1721,8 +1724,8 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 		{
 /*			float cosai2 = cosa[i] * cosa[i];
 			float cosai4 = cosai2 * cosai2;
-*/			float m = 0.2f;
-			float a = acos(cosa[i]);
+*/	//		float m = 0.2f;
+	//		float a = acos(cosa[i]);
 
 //			cosa[i] = exp(-a * a/ (m * m));
 //			cosa[i] =  1/(M_PI_F * m * m * cosai4) * exp(-1/(m * m) * (1/cosai2 - 1));
@@ -1861,7 +1864,7 @@ __kernel void recalc(
 		g.cam_pos = cam_pos;
 		g.li = li;
 		g.angle = angle;
-
+		init_vector(&g.white, 1, 1, 1);
 		g.argc = 2;
 		g.lights = 1;
 
@@ -1919,10 +1922,11 @@ __kernel void recalc(
 
 		objecthit(&ret, *g.cam_pos, sum(ray, *g.cam_pos), g.obj, g.argc + 1, &g);
 //		printf("%d", ret.obj.id);
-		if (ret.obj.id == 1)
+/*		if (ret.obj.id == 1)
 			data_ptr[i] = 0x00FF00;
 		else
 			data_ptr[i] = 0x0000FF;
+*/
 //		return ;   
 
 
@@ -1938,7 +1942,7 @@ __kernel void recalc(
 				data_ptr[i] = color(bright.bri, bright.col);
 			}
 			else
-				data_ptr[i] = 0xFF0000;
+				data_ptr[i] = 0x000000;
 	}
 }
 

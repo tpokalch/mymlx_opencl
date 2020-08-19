@@ -161,6 +161,7 @@ int	move_obj(int kk, t_global *g)
 	else if (kk == W_KEY)
 		*g->cam_pos = sum(*g->cam_pos, *g->normal);
 	campos(g);
+	clEnqueueWriteBuffer(g->cl.commands, g->cl.d_cam_pos, CL_TRUE, 0, sizeof(t_vector), g->cam_pos, 0, NULL, NULL);
 	return (start_threads(move, g));
 }
 
@@ -200,6 +201,7 @@ int		mouse_move(int x, int y, void *param)
 			p.y = (HEIGHT_2 - y) * block;
 			p.z = g->liz[g->light_switch - 1];
 			g->li[g->light_switch - 1] = sum(*g->cam_pos, rotate(p, *g->angle));
+			clEnqueueWriteBuffer(g->cl.commands, g->cl.d_li, CL_TRUE, 0, sizeof(t_vector), g->li, 0, NULL, NULL);	
 			start_threads(toimg, g);
 	}
 	else if (g->light_switch > g->lights) //move cam
@@ -219,7 +221,7 @@ int		mouse_move(int x, int y, void *param)
 //		set int can change to 0
 
 		*g->normal = rotate(g->_0015, p);	
-
+		clEnqueueWriteBuffer(g->cl.commands, g->cl.d_angle, CL_TRUE, 0, sizeof(t_vector), g->angle, 0, NULL, NULL);
 		start_threads(recalc, g);
 	}
 	return (1);

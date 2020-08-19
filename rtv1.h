@@ -281,6 +281,9 @@ typedef	struct s_cl
 	cl_command_queue commands;
 	cl_kernel        ko_vadd;
 	cl_mem			d_data_ptr;
+	cl_mem			d_angle;
+	cl_mem			d_li;
+	cl_mem			d_cam_pos;
 	int			count;
 }				t_cl;
 

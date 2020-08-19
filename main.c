@@ -313,9 +313,7 @@ void	clinit(t_global *g, t_vector *ctr)
 	checkError(err, "Creating kernel");
 
 	cl_mem d_obj;					 // device memory used for the input  a vector
-	cl_mem d_li;					 // device memory used for the input  b vector
-	cl_mem d_cam_pos;					 // device memory used for the input cam_pos
-	cl_mem d_angle;					 // device memory used for the input cam angle
+//	cl_mem g->cl.d_cam_pos;					 // device memory used for the input cam_pos
 	cl_mem d_base;					 // device memory used for the bases
 	cl_mem d_ctr;					 // device memory used for the bases
 
@@ -336,14 +334,14 @@ void	clinit(t_global *g, t_vector *ctr)
 	d_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_object) * (g->argc + 1), NULL, &err);
 	checkError(err, "Creating buffer d_obj");
 
-	d_li = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
-	checkError(err, "Creating buffer d_li");
+	g->cl.d_li = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
+	checkError(err, "Creating buffer g->cl.d_li");
 
-	d_cam_pos = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
-	checkError(err, "Creating buffer d_cam_pos");
+	g->cl.d_cam_pos = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
+	checkError(err, "Creating buffer g->cl.d_cam_pos");
 
-	d_angle = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
-	checkError(err, "Creating buffer d_angle");
+	g->cl.d_angle = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
+	checkError(err, "Creating buffer g->cl.d_angle");
 
 	d_base = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 3, NULL, &err);
 	checkError(err, "Creating buffer d_base");
@@ -356,12 +354,12 @@ void	clinit(t_global *g, t_vector *ctr)
 	err = clEnqueueWriteBuffer(g->cl.commands, d_obj, CL_TRUE, 0, sizeof(t_object) * (g->argc + 1), g->obj, 0, NULL, NULL);
 	checkError(err, "Copying h_a to device at d_a");
 
-	err = clEnqueueWriteBuffer(g->cl.commands, d_li, CL_TRUE, 0, sizeof(t_vector) * g->lights, h_li, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, g->cl.d_li, CL_TRUE, 0, sizeof(t_vector) * g->lights, h_li, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
 
-	err = clEnqueueWriteBuffer(g->cl.commands, d_cam_pos, CL_TRUE, 0, sizeof(t_vector) * 1, h_cam_pos, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, g->cl.d_cam_pos, CL_TRUE, 0, sizeof(t_vector) * 1, h_cam_pos, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
-	err = clEnqueueWriteBuffer(g->cl.commands, d_angle, CL_TRUE, 0, sizeof(t_vector) * 1, h_angle, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(g->cl.commands, g->cl.d_angle, CL_TRUE, 0, sizeof(t_vector) * 1, h_angle, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_b");
 	err = clEnqueueWriteBuffer(g->cl.commands, d_base, CL_TRUE, 0, sizeof(t_vector) * 3, h_base, 0, NULL, NULL);
 	checkError(err, "Copying h_b to device at d_base");
@@ -376,9 +374,9 @@ void	clinit(t_global *g, t_vector *ctr)
 	err |= clSetKernelArg(g->cl.ko_vadd, 0, sizeof(unsigned int), &g->cl.count);
 	err |= clSetKernelArg(g->cl.ko_vadd, 1, sizeof(cl_mem), &g->cl.d_data_ptr);
 	err |= clSetKernelArg(g->cl.ko_vadd, 2, sizeof(cl_mem), &d_obj);
-	err |= clSetKernelArg(g->cl.ko_vadd, 3, sizeof(cl_mem), &d_li);
-	err |= clSetKernelArg(g->cl.ko_vadd, 4, sizeof(cl_mem), &d_cam_pos);
-	err |= clSetKernelArg(g->cl.ko_vadd, 5, sizeof(cl_mem), &d_angle);
+	err |= clSetKernelArg(g->cl.ko_vadd, 3, sizeof(cl_mem), &g->cl.d_li);
+	err |= clSetKernelArg(g->cl.ko_vadd, 4, sizeof(cl_mem), &g->cl.d_cam_pos);
+	err |= clSetKernelArg(g->cl.ko_vadd, 5, sizeof(cl_mem), &g->cl.d_angle);
 	err |= clSetKernelArg(g->cl.ko_vadd, 6, sizeof(cl_mem), &d_base);
 	err |= clSetKernelArg(g->cl.ko_vadd, 7, sizeof(cl_mem), &d_ctr);
 
@@ -386,7 +384,65 @@ void	clinit(t_global *g, t_vector *ctr)
 
 	printf("Setting kernel arguments\n");
 	checkError(err, "Setting kernel arguments");
+
 }
+
+///////////
+
+////////////////
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+void	clinit_event(t_global *g)
+{
+	int		  err;			   // error code returned from OpenCL calls
+	g->cl.count_mouse = 1;
+
+	g->cl.commands_mouse = clCreateCommandQueue(context, device_id, 0, &err);
+	checkError(err, "Creating command queue");
+	printf("here\n");
+	// Create the compute program from the source buffer
+
+	int len;
+	char* KernelSource = /*source*/loadfile("./kernel_mouse.c", &len);
+
+	printf("creating program with source\n");
+	program = clCreateProgramWithSource(context, 1, (const char**)&KernelSource, NULL, &err);
+	checkError(err, "Creating program");
+	printf("here\n");
+	// Build the program
+	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	if (err != CL_SUCCESS)
+	{
+		size_t len;
+		char buffer[999999];
+
+		printf("Error: Failed to build program executable!\n%s\n", err_code(err));
+													//param name	param_value_size param_value
+		err = clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 999999, buffer, &len);
+		printf("clGetProgramBuildInf == %s\n", err_code(err));
+		printf("%s\n", buffer);
+		return ;
+	}
+	printf("creating kernel\n");
+	// Create the compute kernel from the program
+	g->cl.ko_vadd_mouse = clCreateKernel(program, "mouse_move", &err);
+	checkError(err, "Creating kernel");
+	// Set args
+	err |= clSetKernelArg(g->cl.ko_vadd, 0, sizeof(cl_mem), &d_angle);
+	printf("Setting kernel arguments\n");
+	checkError(err, "Setting kernel arguments");
+}
+#endif
 
 //	for the video
 int fd; 
@@ -399,8 +455,14 @@ int		main(int argc, char **argv)
 	int h;
 	int w;
 
+	char **newargv = ft_strsplit("rtv1 plane sphere", ' ');
 
+//	strcpy(newargv[0], "rtv1");
+//	strcpy(newargv[1], "plane");
+//	strcpy(newargv[2], "sphere");
 
+//	argv = newargv;
+	printf("argv is %s,%s,%s\n", argv[0], argv[1], argv[2]);
 //	fd = open("./video", O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
 	h = WIDTH;
 	w = HEIGHT;
@@ -411,6 +473,7 @@ int		main(int argc, char **argv)
 	g.ray = &kenobi[2];
 	g.li = &kenobi[3];
 	g.normal = &kenobi[4];
+	argc = 3;
 	
 	printf("mlx init\n");
 	g.mlx_ptr = mlx_init();
@@ -418,8 +481,9 @@ int		main(int argc, char **argv)
 	printf("ginit\n");
 	ginit(&g);
 	printf("check arg\n");
-	if (!check_arg(argv, argc, &g, ctr))
+	if (!check_arg(newargv, argc, &g, ctr))
 		return (0);
+	free(newargv);
 	printf("new image\n");
 
 	g.img_ptr = mlx_new_image(g.mlx_ptr, WIDTH, HEIGHT);

@@ -25,8 +25,19 @@ int		free_hits(t_global *g)
 	i = -1;
 	while (++i < CORES)
 		free(g->tcps[i]);
+	free(g->li);
+	free(g->liz);
+
+	clReleaseMemObject(g->cl.d_data_ptr);
+	clReleaseMemObject(g->cl.d_angle);
+	clReleaseMemObject(g->cl.d_li);
+//	clReleaseProgram(g->cl.program);
+	clReleaseKernel(g->cl.ko_vadd);
+	clReleaseCommandQueue(g->cl.commands);
+//	clReleaseContext(context);
 	return (1);
 }
+
 void		copy_obj(t_object *t, t_object *g)
 {
 	t = g;

@@ -28,8 +28,8 @@ void		ginit(t_global *g)
 
 //	init_vector(&g->li[0], -800,-400,300);
 //	init_vector(&g->li[1], -200, 400, 100);
-	init_vector(&g->li[0], -600, 100, 500);
-//	init_vector(&g->li[0], -600, 500, 800);
+//	init_vector(&g->li[0], -600, 100, 500);
+	init_vector(&g->li[0], -600, 500, 800);
 //	init_vector(&g->li[0], -576, 211, 230);
 //	init_vector(&g->li[0], -446, -10, 1320);
 //	init_vector(&g->li[0], -667, -13, 1800);
