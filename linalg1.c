@@ -117,6 +117,6 @@ float				tothe2(float x, int e)
 t_dstpst			*NANI(t_dstpst *t)
 {
 	t->dst = NAN;
-	t->obj.name = NULL;
+	t->obj.name = nothing;
 	return (t);
 }

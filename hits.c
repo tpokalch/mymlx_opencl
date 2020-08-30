@@ -104,7 +104,7 @@ t_dstpst	hit_complex(t_vector st, t_vector end,  t_vector ray, t_object obj, t_g
 
 	framecheck = hit_sphere(st, end, ray, *(obj.frame), g);
 	printf("frame checked\n");
-	if (framecheck.obj.name == NULL)
+	if (framecheck.obj.name == nothing)
 	{
 		return (*(NANI(&t)));
 	}
@@ -115,7 +115,7 @@ t_dstpst	hit_complex(t_vector st, t_vector end,  t_vector ray, t_object obj, t_g
 
 	printf("objecthit from complex\n");
 	objecthit(&t, st, end, obj.tris, obj.rd, g);
-	if (t.obj.name == NULL)
+	if (t.obj.name == nothing)
 		return (*(NANI(&t)));
 //	t.obj = obj;
 //	printf("returning %d %s\n", t.obj.id, t.obj.name);

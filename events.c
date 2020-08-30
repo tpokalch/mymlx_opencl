@@ -22,7 +22,8 @@ int		campos(t_global *g)
 	i = 1;
 	while (i < g->argc + 1)
 	{
-		if ((ft_strequ("plane", g->obj[i].name) || ft_strequ("tri", g->obj[i].name))  && dot(diff(*g->obj[i].ctr, *g->cam_pos), g->obj[i].base[1]) > 0)
+		printf("doing campos\n");
+		if ((g->obj[i].name == plane || g->obj[i].name == tri)  && dot(diff(*g->obj[i].ctr, *g->cam_pos), g->obj[i].base[1]) > 0)
 		{
 /*			if (g->obj[i].normal_map.data_ptr)
 			{
@@ -38,7 +39,7 @@ int		campos(t_global *g)
 			
 //					1==inside
 			g->obj[i].cam_pos = 1;
-			printf("we are in %d %s\n", i, g->obj[i].name);
+			printf("we are in %d %d\n", i, g->obj[i].name);
 		}
 		else
 			g->obj[i].cam_pos = 0;
@@ -219,8 +220,10 @@ int		mouse_move(int x, int y, void *param)
 //		muse move should set int can_change to 1
 //		key press should change normal and
 //		set int can change to 0
+//		but i didn't implement this
 
-		*g->normal = rotate(g->_0015, p);	
+		*g->normal = rotate(g->_0015, p);
+//		*g->right = rotate(g->_1500, p);
 		clEnqueueWriteBuffer(g->cl.commands, g->cl.d_angle, CL_TRUE, 0, sizeof(t_vector), g->angle, 0, NULL, NULL);
 		start_threads(recalc, g);
 	}

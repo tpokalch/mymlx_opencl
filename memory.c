@@ -22,9 +22,24 @@ int		free_hits(t_global *g)
 	while (++i < HEIGHT)
 		free(*(g->rays + i));
 	free(g->rays);
+
 	i = -1;
-	while (++i < CORES)
-		free(g->tcps[i]);
+        while (++i < CORES)
+        {
+                printf("freeing %d thread\n", i);
+                free(g->tcps[i]->recursion);
+                free(g->tcps[i]->cosa);
+                free(g->tcps[i]);
+        }
+        // free objects and agragated resources, if any
+        printf("free complex\n");
+        i = 0;
+        while (++i < g->argc + 1)
+        {
+                if (g->obj[i].name == complex)
+                        free(g->obj[i].pts);
+        }
+        free(g->obj);
 	free(g->li);
 	free(g->liz);
 

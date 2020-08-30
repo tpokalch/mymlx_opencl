@@ -9,10 +9,10 @@
 //#include <strings.h>
 
 
-#define WIDTH 1000
-#define HEIGHT 500
-#define HEIGHT_2 250
-#define WIDTH_2 500
+#define WIDTH 500
+#define HEIGHT 250
+#define HEIGHT_2 125
+#define WIDTH_2 250
 
 
 #define TASK 20
@@ -23,6 +23,17 @@
 #define RECORD_VIDEO 0
 
 //typedef	struct	s_vector t_vector;
+
+typedef enum e_name
+{
+        plane,          // 0
+        sphere,         // 1
+        cylinder,       // 2
+        cone,           // 3
+        comp,        // 4
+        tri,            // 5
+        nothing         // 6
+}       t_name;
 
 
 typedef struct s_vector
@@ -62,7 +73,7 @@ void				init_sphere(t_vector *ctr, int i, t_global *g);
 void				init_spheror(t_vector *ctr, int i, t_global *g);
 void				init_cone(t_vector *ctr, int i, t_global *g);
 void				init_tri(t_vector *ctr, int i, t_global *g);
-void				init_complex(t_vector *ctr, int i, t_global *g);
+void				init_comp(t_vector *ctr, int i, t_global *g);
 
 
 int					check_arg(char **argv, int argc, t_global *g, t_vector *ctr);
@@ -99,7 +110,7 @@ t_dstpst			hit_sphere(t_vector st, t_vector end,  t_vector ray, t_object obj, t_
 t_dstpst			hit_cylinder(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g);
 t_dstpst			hit_cone(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g);
 t_dstpst			hit_tri(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g);
-t_dstpst			hit_complex(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g);
+t_dstpst			hit_comp(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g);
 
 t_colbri				simple_bright_plane(t_vector st, t_vector hit, t_object *obj, t_global *g);
 t_colbri				bright_plane(t_vector st, t_vector hit, t_object *obj, t_global *g);
@@ -116,9 +127,8 @@ t_colbri					simple_bright_tri(t_vector st, t_vector hit, t_object *obj, t_globa
 
 t_vector			get_normal_sphere(t_vector point, __global t_object *obj);
 t_vector			get_normal_plane(t_vector point, __global t_object *obj);
-t_vector			get_normal_cyl(t_vector point, t_object *obj);
-t_vector			get_normal_cone(t_vector point, t_object *obj);
-
+t_vector			get_normal_cyl(t_vector point, __global t_object *obj);
+t_vector			get_normal_cone(t_vector point, __global t_object *obj);
 
 
 
@@ -177,7 +187,7 @@ typedef	struct		s_tile
 
 typedef struct		s_object
 {
-	char			*name;
+	t_name			name;
 	int				id;
 	int				cam_pos;
 	t_dstpst		(*hit)(t_vector, t_vector, t_vector, t_object, t_global *g);
@@ -370,7 +380,8 @@ float				tothe2(float x, int e)
 t_dstpst			*NANI(t_dstpst *t)
 {
 	t->dst = NAN;
-	t->obj.id = -1;
+	t->obj.name = nothing;
+
 	return (t);
 }
 
@@ -571,22 +582,23 @@ int		hit_box(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g
 		hit_quad(st, end, ray, quad[5], g));
 }
 
-t_dstpst	hit_complex(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g)
+t_dstpst	hit_comp(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g)
 {
 	t_dstpst t;
-	t_dstpst framecheck;
+/*	t_dstpst framecheck;
 
 	framecheck = hit_sphere(st, end, ray, *(obj.frame), g);
-	if (framecheck.obj.id == -1)
+	if (framecheck.obj.name == nothing)
 	{
 		return (*(NANI(&t)));
 	}
+*/
 
 //	else
 //		return (framecheck);
-
+	printf("hit comp rd (num of tri) is %d\n", obj.rd);
 	objecthit(&t, st, end, obj.tris, obj.rd, g);
-	if (t.obj.id == -1)
+	if (t.obj.name == nothing)
 		return (*(NANI(&t)));
 //	t.obj = obj;
 
@@ -752,7 +764,7 @@ t_colbri		refl(t_vector refl, t_vector hit, t_object obj, t_global *g)
 	objecthit(&temp, hit, sum(refl, hit), g->obj, g->argc + 1, g);
 	reflobj.hit = sum(scale(temp.dst, refl), hit);
 	reflobj.obj = temp.obj;
-	if (reflobj.obj.id == -1)
+	if (reflobj.obj.name == nothing)
 	{
 		init_vector(&ret.col, 0, 0, 0);
 		ret.bri = 0;
@@ -805,7 +817,7 @@ t_colbri		trans(t_vector st, t_vector hit, t_object obj, t_global *g)
 	objecthit(&temp, hit, sum(ray, hit), g->obj, g->argc + 1, g);
 	transobj.hit = sum(scale(temp.dst, ray), hit);
 	transobj.obj = temp.obj;
-	if (transobj.obj.id == -1)
+	if (transobj.obj.name == nothing)
 	{
 		init_vector(&ret.col, 0, 0, 0);
 		ret.bri = g->ambient;
@@ -856,7 +868,7 @@ void		init_bri(int *bri, t_vector *hitli, t_vector nrm, t_global *g)
 	}
 	*bri = round(*bri / (float)g->lights);
 }
-/*
+
 int		inside_cone(t_vector p, t_object obj, t_global *g)
 {
 	float		axdst;
@@ -906,7 +918,7 @@ t_colbri	simple_bright_cone(t_vector st, t_vector hit, t_object *obj,
 	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
 	return (ret);
 }
-
+/*
 void		do_tile_cone(
 	t_vector hit, t_object *obj, t_global *g)
 {
@@ -924,9 +936,9 @@ void		do_tile_cone(
 	obj->color = *(objtile[0].vectile
 		+ round(y) * objtile[0].w + round(x));
 }
+*/
 
-
-t_vector	get_normal_cone(t_vector point, t_object *obj)
+t_vector	get_normal_cone(t_vector point, __global t_object *obj)
 {
 	t_vector hit0;
 	t_vector ret;
@@ -944,7 +956,7 @@ t_colbri	bright_cone(t_vector st, t_vector hit, t_object *obj, t_global *g)
 	t_vector	hitli[g->lights];
 	t_vector	reflrayv;
 
-	g->recursion[obj->id]++;
+//	g->recursion[obj->id]++;
 	hit0 = diff(hit, *obj->ctr);
 	obj->nr = norm(diff(hit0, scale(tarasDot(hit0, obj->base[1]) *
 		(1 + obj->rd2), obj->base[1])));
@@ -963,15 +975,15 @@ t_colbri	bright_cone(t_vector st, t_vector hit, t_object *obj, t_global *g)
 		init_bri(&ret.bri, hitli, obj->nr, g);
 	if (obj->re || obj->spec)
 		reflrayv = reflray(st, hit, obj->nr, g);
-	if (obj->tile[0].data_ptr)
-		do_tile_cone(hit, obj, g);
+//	if (obj->tile[0].data_ptr)
+//		do_tile_cone(hit, obj, g);
 	ret.col = obj->color;
-	if (obj->re)
-		do_re(reflrayv, hit, &ret.col, *obj, g);
-	if (obj->trans)
-		do_trans(st, hit, &ret, *obj, g);
+//	if (obj->re)
+//		do_re(reflrayv, hit, &ret.col, *obj, g);
+//	if (obj->trans)
+//		do_trans(st, hit, &ret, *obj, g);
 	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
-	g->recursion[obj->id] = 0;
+//	g->recursion[obj->id] = 0;
 	return (ret);
 }
 
@@ -1004,6 +1016,7 @@ t_colbri	simple_bright_cylinder(t_vector st, t_vector hit,
 	return (ret);
 }
 
+/*
 void	do_tile_cyl(t_vector hit, t_vector ctrhit,
 	 t_object *obj, t_global *g)
 {
@@ -1029,8 +1042,9 @@ void	do_tile_cyl(t_vector hit, t_vector ctrhit,
 	obj->color = *(obj->tile[0].vectile +
 		round(y) * obj->tile[0].w + round(x));
 }
+*/
 
-t_vector	get_normal_cyl(t_vector point, t_object *obj)
+t_vector	get_normal_cyl(t_vector point, __global t_object *obj)
 {
 	t_vector ctrhit;
 	t_vector ret;
@@ -1049,7 +1063,7 @@ t_colbri	bright_cylinder(t_vector st, t_vector hit,
 	t_vector	hitli[g->lights];
 	t_vector	reflrayv;
 
-	g->recursion[obj->id]++;
+//	g->recursion[obj->id]++;
 	ctrhit = diff(hit, *obj->ctr);
 	obj->nr = scale(tarasDot(ctrhit, obj->base[1]), obj->base[1]);
 	obj->nr = norm(diff(ctrhit, obj->nr));
@@ -1065,20 +1079,20 @@ t_colbri	bright_cylinder(t_vector st, t_vector hit,
 	}
 	else
 		init_bri(&ret.bri, hitli, obj->nr, g);
-	if (obj->tile[0].data_ptr)
-		do_tile_cyl(hit, ctrhit, obj, g);
+//	if (obj->tile[0].data_ptr)
+//		do_tile_cyl(hit, ctrhit, obj, g);
 	ret.col = obj->color;
 	if (obj->spec || obj->re)
 		reflrayv = reflray(st, hit, obj->nr, g);
-	if (obj->re)
-		do_re(reflrayv, hit, &ret.col, *obj, g);
-	if (obj->trans)
-		do_trans(st, hit, &ret, *obj, g);
+//	if (obj->re)
+//		do_re(reflrayv, hit, &ret.col, *obj, g);
+//	if (obj->trans)
+//		do_trans(st, hit, &ret, *obj, g);
 	obstructed(&ret, hit, hitli, reflrayv, *obj, g);
-	g->recursion[obj->id] = 0;
+//	g->recursion[obj->id] = 0;
 	return (ret);
 }
-*/
+
 void		do_1_spec(t_colbri *tmp, t_colbri *ret, t_vector *hitli,
 	t_vector reflrayv, t_object obj, int i, t_global *g)
 {
@@ -1661,11 +1675,17 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 				iobjn[1] = (iobjn[1] + 1) % (g->argc + 1);
 			if (obj.id != g->obj[iobjn[1]].id)
 			{
-				if (g->obj[iobjn[1]].id == 1)
+				if (g->obj[iobjn[1]].name == plane)
 					t = hit_plane(hit, g->li[i], ray, g->obj[iobjn[1]], g);
-				else
+				else if (g->obj[iobjn[1]].name == sphere)
 					t = hit_sphere(hit, g->li[i], ray, g->obj[iobjn[1]], g);
-				if (t.dst /*/ sqrt(tarasDot(ray, ray))*/ < 0.000001f)
+				else if (g->obj[iobjn[1]].name == cylinder)
+					t = hit_cylinder(hit, g->li[i], ray, g->obj[iobjn[1]], g);
+				else if (g->obj[iobjn[1]].name == cone)
+					t = hit_cone(hit, g->li[i], ray, g->obj[iobjn[1]], g);
+				else if (g->obj[iobjn[1]].name == comp)
+					t = hit_comp(hit, g->li[i], ray, g->obj[iobjn[1]], g);
+				if (t.dst < 0.000001f)
 				{
 					i++;
 					break;
@@ -1677,11 +1697,16 @@ void	obstructed(t_colbri *cur, t_vector hit, t_vector *hitli, t_vector reflrayv,
 						obstructed = sum(scale(t.dst, ray), hit);
 //						t_vector ctrhit = diff(obstructed,  *g->obj[iobjn[1]].ctr); 
 
-//						segfailt here if object is complex. object must be a triangle
-						if (g->obj[iobjn[1]].id == 1)
+//						segfailt here if object is comp. object must be a triangle
+						if (g->obj[iobjn[1]].name == plane)
 							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_plane(obstructed, &g->obj[iobjn[1]])), norm(ray))));
-						else
+						else if (g->obj[iobjn[1]].name == sphere)
 							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_sphere(obstructed, &g->obj[iobjn[1]])), norm(ray))));
+						else if (g->obj[iobjn[1]].name == cylinder)
+							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_cyl(obstructed, &g->obj[iobjn[1]])), norm(ray))));
+						else if (g->obj[iobjn[1]].name == cone)
+							soft[i] = fmax((float)soft[i], (float)fmax((float)0, (float)-tarasDot(norm(get_normal_cone(obstructed, &g->obj[iobjn[1]])), norm(ray))));
+
 
 //						soft[i] = fmax((float)0, (float)-tarasDot(norm(g->obj[iobjn[1]].get_normal(obstructed, &g->obj[iobjn[1]])), norm(ray)));
 
@@ -1792,10 +1817,16 @@ void	objecthit(t_dstpst *ret, t_vector st, t_vector end, __global t_object *obj,
 	ray = diff(end, st);
 	while (++i < objc)
 	{
-		if (obj[i].id == 1)
+		if (obj[i].name == plane)
 			t_crt = hit_plane(st, end, ray, obj[i], g);
-		else
+		else if (obj[i].name == sphere)
 			t_crt = hit_sphere(st, end, ray, obj[i], g);
+		else if (obj[i].name == cylinder)
+			t_crt = hit_cylinder(st, end, ray, obj[i], g);
+		else if (obj[i].name == cone)
+			t_crt = hit_cone(st, end, ray, obj[i], g);
+		else if (obj[i].name == comp)
+			t_crt = hit_comp(st, end, ray, obj[i], g);
 		if ((t_crt.dst >= 0.0001f) && (!legal_hit || t_crt.dst < closest_tmp))
 		{
 			legal_hit = 1;
@@ -1805,8 +1836,8 @@ void	objecthit(t_dstpst *ret, t_vector st, t_vector end, __global t_object *obj,
  		}
 	}
 	if (!legal_hit)
-//		ret->obj.name = NULL;
-		ret->obj.id = -1;
+		ret->obj.name = nothing;
+//		ret->obj.id = nothing;
 }
 
 
@@ -1922,7 +1953,7 @@ __kernel void recalc(
 
 		objecthit(&ret, *g.cam_pos, sum(ray, *g.cam_pos), g.obj, g.argc + 1, &g);
 //		printf("%d", ret.obj.id);
-/*		if (ret.obj.id == 1)
+/*		if (ret.obj.name == plane)
 			data_ptr[i] = 0x00FF00;
 		else
 			data_ptr[i] = 0x0000FF;
@@ -1934,11 +1965,16 @@ __kernel void recalc(
 		if (ret.obj.id != -1)
 			{
 //				printf("gettin bright\n");
-				if (ret.obj.id == 1)
+				if (ret.obj.name == plane)
 					bright = bright_plane(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
-				else if (ret.obj.id == 2)
+				else if (ret.obj.name == sphere)
 					bright = bright_sphere(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
-	
+				else if (ret.obj.name == cylinder)
+					bright = bright_cylinder(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
+				else if (ret.obj.name == cone)
+					bright = bright_cone(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);
+				else if (ret.obj.name == comp)
+					bright = bright_plane(*g.cam_pos, sum(scale(ret.dst, ray), *g.cam_pos), &ret.obj, &g);	
 				data_ptr[i] = color(bright.bri, bright.col);
 			}
 			else

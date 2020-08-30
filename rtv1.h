@@ -33,10 +33,10 @@
 #include <CL/cl.h>
 #endif
 
-#define WIDTH 1000
-#define HEIGHT 500
-#define HEIGHT_2 250
-#define WIDTH_2 500
+#define WIDTH 500
+#define HEIGHT 250
+#define HEIGHT_2 125
+#define WIDTH_2 250
 
 #define A_KEY 65
 #define S_KEY 83
@@ -66,6 +66,18 @@
 #define M_T 6.28318530718
 #define MAX_REC 4
 #define RECORD_VIDEO 0
+
+typedef enum e_name
+{
+        plane,          // 0
+        sphere,         // 1
+        cylinder,       // 2
+        cone,           // 3
+        complex,        // 4
+        tri,            // 5
+        nothing         // 6
+}       t_name;
+
 
 typedef	struct	s_vector t_vector;
 
@@ -227,7 +239,7 @@ typedef	struct		s_tile
 
 typedef struct		s_object
 {
-	char			*name;
+	t_name			name;
 	int				id;
 	int				cam_pos;
 	t_dstpst		(*hit)(t_vector, t_vector, t_vector, t_object, t_global *g);
@@ -299,6 +311,7 @@ typedef struct		s_global
         int                             light_switch;
         t_dstpst                cone[2];
         t_vector                _0015;
+        t_vector                _1500;
         t_vector                white;
 	t_vector		base[3];
 	t_vector		*li;
@@ -307,6 +320,7 @@ typedef struct		s_global
 	float			*liz;
 	t_vector		*angle;
 	t_vector		*normal;
+	t_vector		*right;
 	t_object		*obj;
 	t_object		*all_obj;
 	t_objecthit		***hits;

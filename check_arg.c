@@ -71,7 +71,7 @@ int		arg_valid(char **argv)
 	ret = 0;
 	printf("argv valid?\n");
 	printf("first arg is %s\n", argv[i]);
-	while (/*(coords = 0) == 0 why not work on windows &&*/ *(argv + i))
+	while ((coords = 0) == 0  && *(argv + i))
 	{
 		printf("inside while checking %s\n", *(argv + i));
 		if (obj_traver(argv + i, "and"))

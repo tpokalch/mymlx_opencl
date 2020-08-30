@@ -321,9 +321,9 @@ void	clinit(t_global *g, t_vector *ctr)
 
 	// Create the input (a, b) and output (c) arrays in device memory
 	printf("argc + 1 is %d\n", g->argc + 1);
-	printf("objects are: %d %d %s\n", 0, g->obj[0].id, g->obj[0].name);
-	printf("objects are: %d %d %s\n", 1, g->obj[1].id, g->obj[1].name);
-	printf("objects are: %d %d %s\n", 2, g->obj[2].id, g->obj[2].name);
+	printf("objects are: %d %d %d\n", 0, g->obj[0].id, g->obj[0].name);
+	printf("objects are: %d %d %d\n", 1, g->obj[1].id, g->obj[1].name);
+	printf("objects are: %d %d %d\n", 2, g->obj[2].id, g->obj[2].name);
 
 
 	g->cl.d_data_ptr = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(unsigned int) * WIDTH * HEIGHT, NULL, &err);
@@ -451,11 +451,11 @@ int		main(int argc, char **argv)
 {
 	t_global g;
 	t_vector ctr[argc];
-	t_vector kenobi[5];
+	t_vector kenobi[6];
 	int h;
 	int w;
 
-	char **newargv = ft_strsplit("rtv1 plane sphere", ' ');
+//	char **newargv = ft_strsplit("rtv1 plane sphere", ' ');
 
 //	strcpy(newargv[0], "rtv1");
 //	strcpy(newargv[1], "plane");
@@ -473,7 +473,9 @@ int		main(int argc, char **argv)
 	g.ray = &kenobi[2];
 	g.li = &kenobi[3];
 	g.normal = &kenobi[4];
-	argc = 3;
+	g.right = &kenobi[5];
+
+//	argc = 3;
 	
 	printf("mlx init\n");
 	g.mlx_ptr = mlx_init();
@@ -481,9 +483,9 @@ int		main(int argc, char **argv)
 	printf("ginit\n");
 	ginit(&g);
 	printf("check arg\n");
-	if (!check_arg(newargv, argc, &g, ctr))
+	if (!check_arg(argv, argc, &g, ctr))
 		return (0);
-	free(newargv);
+//	free(newargv);
 	printf("new image\n");
 
 	g.img_ptr = mlx_new_image(g.mlx_ptr, WIDTH, HEIGHT);
