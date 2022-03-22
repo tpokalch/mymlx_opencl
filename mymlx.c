@@ -381,6 +381,7 @@ void    mlx_loop(void *mlx_ptr)
 		glfwSwapBuffers(MLX->window);
 		glfwPollEvents();
 	}
+	printf("glfwWindowShouldClose = true\n");
 }
 
 
