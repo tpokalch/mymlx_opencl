@@ -263,7 +263,7 @@ void	clinit(t_global *g, t_vector *ctr)
 	// Secure a GPU
 	for (int i = 0; i < numPlatforms; i++)
 	{
-		err = clGetDeviceIDs(Platform[i], CL_DEVICE_TYPE_DEFAULT, 1, &device_id, NULL);
+		err = clGetDeviceIDs(Platform[i], CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
 		if (err == CL_SUCCESS)
 		{
 			break;

@@ -59,10 +59,12 @@ void    *mlx_new_image(void *mlx_ptr, int width, int height);
 void    *mlx_get_data_addr(void *img_ptr, int *bpp, int *sz_l, int *e);
 void    mlx_put_image_to_window(void *mlx_ptr, void *win_ptr, int *img_ptr, int ignore1, int ignore2);
 void    mlx_loop(void *mlx_ptr);
+void	mlx_hook(void *win_ptr, int n, int i, int (*f) (), void *param);
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void cursor_position_callback(GLFWwindow* window, double x, double y);
 void    key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 
 #endif
 

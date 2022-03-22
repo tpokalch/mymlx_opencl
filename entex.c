@@ -274,7 +274,8 @@ int		start_threads(void *f, t_global *g)
 	printf("done\n");
 	if (err != CL_SUCCESS)
 	{
-		printf("Error: Failed to read output array!\n%s\n", err_code(err));
+//		printf("Error: Failed to read output array!\n%s\n", err_code(err));
+		printf("Error: Failed to read output array!\n");
 		exit(1);
 	}
 	mlx_put_image_to_window(g->mlx_ptr, g->win_ptr, g->img_ptr, 0, 0);
