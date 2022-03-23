@@ -16,6 +16,9 @@
 
 #include <math.h>
 #include "mymlx.h"
+//#include <mlx.h>
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "libft/libft.h"
@@ -33,11 +36,12 @@
 #include <CL/cl.h>
 #endif
 
-#define WIDTH 1000
-#define HEIGHT 500
-#define HEIGHT_2 250
-#define WIDTH_2 500
+//window dimensions in this file to include separately form everything else in kernel.c
+#include "windowdim.h"
 
+// keycodes for mymlx
+
+/*
 #define A_KEY 65
 #define S_KEY 83
 #define D_KEY 68
@@ -58,7 +62,33 @@
 #define RIGHT_KEY 262
 #define H_KEY 72
 #define G_KEY 71
+*/
 
+/*
+#define A_KEY 97
+#define S_KEY 115
+#define D_KEY 100
+#define F_KEY 102
+#define W_KEY 119
+#define SPACE_KEY 32
+#define ESC_KEY 65307
+#define J_KEY 106
+#define K_KEY 107
+#define L_KEY 108
+#define I_KEY 105
+#define O_KEY 111
+#define BRA_KEY 44
+#define KET_KEY 46
+#define UP_KEY 65362
+#define DOWN_KEY 65364
+#define LEFT_KEY 65361
+#define RIGHT_KEY 65363
+#define H_KEY 104
+#define G_KEY 103
+#define R_KEY 114
+#define T_KEY 116
+#define Y_KEY 121
+*/
 
 #define TASK 20
 #define STRIPS HEIGHT / TASK
@@ -285,6 +315,7 @@ typedef	struct s_cl
 	cl_mem			d_li;
 	cl_mem			d_cam_pos;
 	int			count;
+	cl_mem			d_normal;
 }				t_cl;
 
 typedef struct		s_global

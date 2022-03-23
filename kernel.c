@@ -1,5 +1,5 @@
 
-#pragma OPENCL EXTENSION cl_intel_printf : enable
+//#pragma OPENCL EXTENSION cl_intel_printf : enable
 
 //#include <math.h>
 //#include "mymlx.h"
@@ -9,11 +9,14 @@
 //#include <strings.h>
 
 
-#define WIDTH 1000
-#define HEIGHT 500
-#define HEIGHT_2 250
-#define WIDTH_2 500
+/*
+#define WIDTH 100
+#define HEIGHT 50
+#define HEIGHT_2 25
+#define WIDTH_2 50
+*/
 
+#include "windowdim.h"
 
 #define TASK 20
 #define STRIPS HEIGHT / TASK
@@ -119,7 +122,8 @@ t_vector			get_normal_plane(t_vector point, __global t_object *obj);
 t_vector			get_normal_cyl(t_vector point, t_object *obj);
 t_vector			get_normal_cone(t_vector point, t_object *obj);
 
-
+void		init_hitli(t_vector *hitli, t_vector hit, t_global *g);
+void		init_bri(int *bri, t_vector *hitli, t_vector nrm, t_global *g);
 
 
 void				alias(int *dst, int *a, int w, int h, int xmax, int ymax);
@@ -153,6 +157,12 @@ float				tothe2(float x, int e);
 void		do_tile_sphere(t_vector hit, t_object *obj, t_global *g);
 void		do_re(t_vector refl, t_vector hit, t_vector *retcol, t_object obj, t_global *g);
 void		do_trans(t_vector st, t_vector hit, t_colbri *ret, t_object obj, t_global *g);
+int		mid_col(int* a, int w, int h, int x, int y);
+void	rewrite_pix(int* a, int* o, int x, int y, int w, int h, int xmax, int ymax, t_global* g);
+t_colbri		trans(t_vector st, t_vector hit, t_object obj, t_global *g);
+t_colbri		refl(t_vector refl, t_vector hit, t_object obj, t_global *g);
+t_vector		reflray(t_vector st, t_vector end, t_vector nrm, t_global *g);
+
 
 
 void		do_spec(t_colbri *ret, t_vector hit, t_vector nrm, t_vector reflrayv, t_object obj, t_global *g);
@@ -486,6 +496,9 @@ int			color(int b, t_vector v)
 //							HITS.C				      	//
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+
+#if 0
 int 		hit_quad(t_vector st, t_vector end,  t_vector ray, t_vector quad[4], t_global *g)
 {
 	t_vector tri[2][3];
@@ -552,7 +565,7 @@ int		hit_box(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g
 	quad[5][1] = obj.box[4];
 	quad[5][2] = obj.box[7];
 	quad[5][3] = obj.box[3];
-
+*/
 /*	int hit[6];
 	int i = 0;
 	while (i < 6)
@@ -563,14 +576,15 @@ int		hit_box(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g
 
 	}
 */
-	return (hit_quad(st, end, ray, quad[0], g) ||
+/*	return (hit_quad(st, end, ray, quad[0], g) ||
 		hit_quad(st, end, ray, quad[1], g) ||
 		hit_quad(st, end, ray, quad[2], g) ||
 		hit_quad(st, end, ray, quad[3], g) ||
 		hit_quad(st, end, ray, quad[4], g) ||
 		hit_quad(st, end, ray, quad[5], g));
-}
 
+}
+*/
 t_dstpst	hit_complex(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g)
 {
 	t_dstpst t;
@@ -674,7 +688,7 @@ t_dstpst		hit_cylinder(t_vector st, t_vector end,  t_vector ray, t_object obj, t
 	t.obj = obj;
 	return (t);
 }
-
+/*
 t_dstpst	hit_tri(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g)
 {
 	t_dstpst t;
@@ -696,7 +710,7 @@ t_dstpst	hit_tri(t_vector st, t_vector end,  t_vector ray, t_object obj, t_globa
 	t.obj = obj;
 	return (t);
 }
-
+*/
 t_dstpst		hit_cone(t_vector st, t_vector end,  t_vector ray, t_object obj, t_global *g)
 {
 	t_vector dx[2];
@@ -704,7 +718,6 @@ t_dstpst		hit_cone(t_vector st, t_vector end,  t_vector ray, t_object obj, t_glo
 	t_vector abc;
 	t_global p;
 	float ret;
-	float min;
 
 	p = *g;
 	dx[0] = diff(st, *obj.ctr);
@@ -1099,8 +1112,6 @@ void		do_1_spec(t_colbri *tmp, t_colbri *ret, t_vector *hitli,
 void		do_spec(t_colbri *ret, t_vector hit, t_vector nrm,
 	t_vector reflrayv, t_object obj, t_global *g)
 {
-	float		cosa;
-	float		cosa3;
 	int			i;
 	t_colbri	tmp;
 	t_vector	hitli[1/*g->lights*/];
@@ -1452,7 +1463,6 @@ int		mid_col(int* a, int w, int h, int x, int y)
 {
 	t_vector vret;
 	int s;
-	int ret;
 
 	s = 1;
 	//	ret = *(a + y * w + x);
@@ -1595,7 +1605,6 @@ void	smooth(int* a, int w, int h, int xmax, int ymax, t_global* g)
 
 void		alias(int* dst, int* a, int w, int xmax, int ymax, int h)
 {
-	int mid;
 	int i;
 	int j;
 
@@ -1818,9 +1827,12 @@ __kernel void recalc(
 		__global t_vector	*cam_pos,
 		__global t_vector	*angle,
 		__global t_vector	*base,
-		__global t_vector	*ctr
+		__global t_vector	*ctr,
+		__global t_vector	*normal
 )
 {
+//	i is the number of integer in data_addr.
+//	x and y on screen can be deduced from it
 	int i = get_global_id(0);
 
 	if(i < count)
@@ -1837,6 +1849,7 @@ __kernel void recalc(
 //		t_vector objctr[2];
 
 		int x = i % WIDTH;
+
 		int y = i / WIDTH;
 		t_global g;
 
@@ -1883,6 +1896,7 @@ __kernel void recalc(
 		t_dstpst ret;
 		t_colbri bright;
 //		g.obj[1] = *(obj + 1);
+								//calculates distance to screen
 		init_vector(&ray, x - WIDTH_2, HEIGHT_2 - y, WIDTH / (float)2000 * 1600);
 		ray = tarasRotate(ray, *g.angle);
 

@@ -209,7 +209,7 @@ void* loadfile(char* file, int* size)
 	return buffer;
 }
 
-void	clinit(t_global *g, t_vector *ctr)
+int	clinit(t_global *g, t_vector *ctr)
 {
 	int		  err;			   // error code returned from OpenCL calls
 
@@ -219,6 +219,8 @@ void	clinit(t_global *g, t_vector *ctr)
 	t_vector *h_cam_pos = g->cam_pos;	   // cam pos
 	t_vector* h_base = g->base;
 	t_vector* h_ctr = ctr;
+	t_vector* h_normal = g->normal;
+
 
 	printf("center 1 is %f,%f,%f\n", h_ctr[1].x, h_ctr[1].y, h_ctr[1].z);
 	printf("center 2 is %f,%f,%f\n", h_ctr[2].x, h_ctr[2].y, h_ctr[2].z);
@@ -251,7 +253,7 @@ void	clinit(t_global *g, t_vector *ctr)
 	if (numPlatforms == 0)
 	{
 		printf("Found 0 platforms!\n");
-		return ;
+		return 0;
 	}
 	printf("here\n");
 	// Get all platforms
@@ -292,6 +294,7 @@ void	clinit(t_global *g, t_vector *ctr)
 	printf("creating program with source\n");
 	program = clCreateProgramWithSource(context, 1, (const char**)&KernelSource, NULL, &err);
 	checkError(err, "Creating program");
+	printf("%s\n", err_code(err));
 	printf("here\n");
 	// Build the program
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
@@ -302,10 +305,10 @@ void	clinit(t_global *g, t_vector *ctr)
 
 		printf("Error: Failed to build program executable!\n%s\n", err_code(err));
 													//param name	param_value_size param_value
-		err = clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 999999, buffer, &len);
-		printf("clGetProgramBuildInf == %s\n", err_code(err));
+		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 999999, buffer, &len);
+		printf("clGetProgramBuildInf: \n%s", buffer);
 		printf("%s\n", buffer);
-		return ;
+		return 0;
 	}
 	printf("creating kernel\n");
 	// Create the compute kernel from the program
@@ -316,7 +319,7 @@ void	clinit(t_global *g, t_vector *ctr)
 //	cl_mem g->cl.d_cam_pos;					 // device memory used for the input cam_pos
 	cl_mem d_base;					 // device memory used for the bases
 	cl_mem d_ctr;					 // device memory used for the bases
-
+	cl_mem d_normal;
 	//cl_mem g->cl.d_data_ptr;					 // device memory used for the output c vector
 
 	// Create the input (a, b) and output (c) arrays in device memory
@@ -349,6 +352,9 @@ void	clinit(t_global *g, t_vector *ctr)
 	d_ctr = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * (g->argc + 1), NULL, &err);
 	checkError(err, "Creating buffer d_ctr");
 
+	d_normal = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_vector) * 1, NULL, &err);
+	checkError(err, "Creating buffer d_normal");
+
 
 	// Write a and b vectors into compute device memory
 	err = clEnqueueWriteBuffer(g->cl.commands, d_obj, CL_TRUE, 0, sizeof(t_object) * (g->argc + 1), g->obj, 0, NULL, NULL);
@@ -367,6 +373,10 @@ void	clinit(t_global *g, t_vector *ctr)
 	err = clEnqueueWriteBuffer(g->cl.commands, d_ctr, CL_TRUE, 0, sizeof(t_vector) * (g->argc + 1), h_ctr, 0, NULL, NULL);
 	checkError(err, "Copying h_ctr to device at d_ctr");
 
+	err = clEnqueueWriteBuffer(g->cl.commands, d_normal, CL_TRUE, 0, sizeof(t_vector) * 1, h_normal, 0, NULL, NULL);
+	checkError(err, "Copying h_ctr to device at d_ctr");
+
+
 	// Set the arguments to our compute kernel
 	printf("campos is %f,%f,%f\n", g->cam_pos->x, g->cam_pos->y, g->cam_pos->z);
 	printf("li is %f,%f,%f\n", g->li->x, g->li->y, g->li->z);
@@ -379,12 +389,14 @@ void	clinit(t_global *g, t_vector *ctr)
 	err |= clSetKernelArg(g->cl.ko_vadd, 5, sizeof(cl_mem), &g->cl.d_angle);
 	err |= clSetKernelArg(g->cl.ko_vadd, 6, sizeof(cl_mem), &d_base);
 	err |= clSetKernelArg(g->cl.ko_vadd, 7, sizeof(cl_mem), &d_ctr);
+	err |= clSetKernelArg(g->cl.ko_vadd, 8, sizeof(cl_mem), &d_normal);
 
 
 
 	printf("Setting kernel arguments\n");
 	checkError(err, "Setting kernel arguments");
 
+	return (1);
 }
 
 ///////////
@@ -504,13 +516,17 @@ int		main(int argc, char **argv)
 		printf("found %d platforms\n", numPlatforms);
 	}
 */
-	clinit(&g, ctr);
+	if (clinit(&g, ctr) == 0)
+	{
+		free(g.data_ptr);
+		return (0);
+	}
 	//copy_tcps(&g);
 	printf("starting threads\n");
 	start_threads(recalc, &g);
 //	mlx_hook(g.win_ptr, 4, 4, mouse_press, &g);
-	mlx_hook(g.win_ptr, 2, 2, key_press, &g);
-	mlx_hook(g.win_ptr, 6, 6, mouse_move, &g);
+	mlx_hook(g.win_ptr, 2, 1L<<0, key_press, &g);
+	mlx_hook(g.win_ptr, 6, 1L<<6, mouse_move, &g);
 //	mlx_loop_hook(g.mlx_ptr, loop, &g);
 	mlx_loop(g.mlx_ptr);
 }

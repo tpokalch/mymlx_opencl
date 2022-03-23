@@ -154,6 +154,8 @@ int	move_obj(int kk, t_global *g)
 			g->angle->y += 0.05;
 		*g->normal = rotate(g->_0015, *g->angle);
 		campos(g);
+		clEnqueueWriteBuffer(g->cl.commands, g->cl.d_angle, CL_TRUE, 0, sizeof(t_vector), g->angle, 0, NULL, NULL);
+		clEnqueueWriteBuffer(g->cl.commands, g->cl.d_normal, CL_TRUE, 0, sizeof(t_vector), g->normal, 0, NULL, NULL);
 		return (start_threads(recalc, g));
 	}
 	else if (kk == S_KEY)
